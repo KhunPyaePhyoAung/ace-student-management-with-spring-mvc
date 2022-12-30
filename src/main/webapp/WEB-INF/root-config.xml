@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:security="http://www.springframework.org/schema/security"
+	xsi:schemaLocation="http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+
+	<bean id="poolProperties"
+		class="org.apache.tomcat.jdbc.pool.PoolProperties">
+		<property name="url"
+			value="jdbc:mysql://localhost:3306/ace_student_management"></property>
+		<property name="driverClassName"
+			value="com.mysql.cj.jdbc.Driver"></property>
+		<property name="username" value="root"></property>
+		<property name="password" value="admin"></property>
+		<property name="jmxEnabled" value="true"></property>
+		<property name="testWhileIdle" value="false"></property>
+		<property name="testOnBorrow" value="true"></property>
+		<property name="validationQuery" value="SELECT 1"></property>
+		<property name="testOnReturn" value="false"></property>
+		<property name="validationInterval" value="30000"></property>
+		<property name="timeBetweenEvictionRunsMillis" value="30000"></property>
+		<property name="maxActive" value="100"></property>
+		<property name="initialSize" value="10"></property>
+		<property name="maxWait" value="10000"></property>
+		<property name="removeAbandonedTimeout" value="60"></property>
+		<property name="minEvictableIdleTimeMillis" value="30000"></property>
+		<property name="minIdle" value="10"></property>
+		<property name="logAbandoned" value="true"></property>
+		<property name="removeAbandoned" value="true"></property>
+	</bean>
+
+	<bean 
+		id="dataSource"
+		class="org.apache.tomcat.jdbc.pool.DataSource">
+		<property name="poolProperties" ref="poolProperties"></property>
+	</bean>
+	
+	<bean
+		id="passwordEncoder"
+		class="org.springframework.security.crypto.password.NoOpPasswordEncoder" factory-method="getInstance">
+	</bean>
+	
+	<bean id="userRepo" class="me.khun.studentmanagement.model.repo.impl.MyBatisUserRepoImpl"></bean>
+	
+	<bean id="courseRepo" class="me.khun.studentmanagement.model.repo.impl.MyBatisCourseRepoImpl"></bean>
+	
+	<bean id="studentRepo" class="me.khun.studentmanagement.model.repo.impl.MyBatisStudentRepoImpl"></bean>
+	
+	<bean id="authService" class="me.khun.studentmanagement.model.service.impl.AuthServiceImpl">
+		<constructor-arg ref="userRepo"></constructor-arg>		
+	</bean>
+	
+	<bean id="userService" class="me.khun.studentmanagement.model.service.impl.UserServiceImpl">
+		<constructor-arg ref="userRepo"></constructor-arg>		
+	</bean>
+	
+	<bean id="courseService" class="me.khun.studentmanagement.model.service.impl.CourseServiceImpl">
+		<constructor-arg ref="courseRepo"></constructor-arg>		
+	</bean>
+	
+	<bean id="studentService" class="me.khun.studentmanagement.model.service.impl.StudentServiceImpl">
+		<constructor-arg ref="studentRepo"></constructor-arg>		
+	</bean>
+	
+	<bean 
+		id="authFailureHandler"
+		class="me.khun.studentmanagement.security.CustomAuthenticationFailureHandler">
+	</bean>
+	
+	<bean
+		id="authSuccessHandler"
+		class="me.khun.studentmanagement.security.CustomAuthenticationSuccessHandler">
+		<constructor-arg ref="userService"></constructor-arg>
+	</bean>
+
+	<security:authentication-manager
+		id="authManager"
+	>
+		<security:authentication-provider>
+			<security:password-encoder ref="passwordEncoder"/>
+			<security:jdbc-user-service
+				data-source-ref="dataSource"
+				users-by-username-query="SELECT `email`, `password`, `approved` FROM `user` WHERE `email` = ?"
+				authorities-by-username-query="SELECT `email`, `role` FROM `user` WHERE `email` = ?"
+			/>
+		</security:authentication-provider>
+	</security:authentication-manager>
+
+	<security:http authentication-manager-ref="authManager" >
+	
+		<security:csrf disabled="true"/>
+		
+		<security:intercept-url
+			pattern="/admin/**"
+			access="hasAuthority('ADMIN')" />
+			
+		<security:intercept-url
+			pattern="/login"
+			access="permitAll()" />
+			
+		<security:intercept-url
+			pattern="/signup"
+			access="permitAll()" />
+			
+		<security:intercept-url
+			pattern="/resources/**"
+			access="permitAll()" />
+			
+		<security:intercept-url
+			pattern="/**"
+			access="hasAnyAuthority('ADMIN', 'USER')" />
+			
+		<security:form-login
+			login-page="/login"
+			always-use-default-target="true"
+			username-parameter="email"
+			password-parameter="password"
+			authentication-failure-handler-ref="authFailureHandler"
+			authentication-success-handler-ref="authSuccessHandler"
+			 />
+
+		<security:logout
+			logout-url="/logout"
+			invalidate-session="true"
+			logout-success-url="/" />
+
+		<security:access-denied-handler
+			error-page="/unauthorized" />
+	</security:http>
+
+</beans>

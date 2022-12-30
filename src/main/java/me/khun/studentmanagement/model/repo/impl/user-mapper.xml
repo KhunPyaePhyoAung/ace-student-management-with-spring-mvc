@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="user">
+
+	<insert id="insert" parameterType="map" useGeneratedKeys="true" keyProperty="user.idCode" keyColumn="id_code">
+		INSERT INTO `user` (`id_prefix`, `name`, `email`, `password`, `role`, `approved`)
+		VALUES (#{userIdPrefix}, #{user.name}, #{user.email}, #{user.password}, #{user.role}, #{user.approved});
+	</insert>
+	
+	<update id="updateById" parameterType="user">
+		UPDATE `user` SET `name` = #{name}, `email` = #{email}, `password` = #{password}, `role` = #{role}, approved = #{approved}
+		WHERE CONCAT(`id_prefix`, `id_code`) = #{id}
+	</update>
+	
+	<select id="selectById" parameterType="string" resultType="user">
+		SELECT *, `id_prefix` AS `idPrefix`, `id_code` AS `idCode`, CONCAT(`id_prefix`, `id_code`) AS `id` FROM `user`
+		WHERE CONCAT(`id_prefix`, `id_code`) = #{id}
+	</select>
+	
+	<select id="selectByEmail" parameterType="string" resultType="user">
+		SELECT *, `id_prefix` AS `idPrefix`, `id_code` AS `idCode`, CONCAT(`id_prefix`, `id_code`) AS `id` FROM `user`
+		WHERE `email` = #{email}
+	</select>
+	
+	<select id="selectAll" resultType="user">
+		SELECT *, `id_prefix` AS `idPrefix`, `id_code` AS `idCode`, CONCAT(`id_prefix`, `id_code`) AS `id` FROM `user`
+	</select>
+	
+	<select id="selectCount" resultType="long">
+		SELECT COUNT(`id_code`) FROM `user`;
+	</select>
+	
+	<select id="selectByKeywordLike" parameterType="string" resultType="user">
+		SELECT *, `id_prefix` AS `idPrefix`, `id_code` AS `idCode`, CONCAT(`id_prefix`, `id_code`) AS `id` FROM `user`
+		WHERE CONCAT(`id_prefix`, `id_code`) LIKE #{keyword} OR `name` LIKE #{keyword}
+	</select>
+	
+	<select id="selectByKeywordLikeAndApproved" parameterType="map" resultType="user">
+		SELECT *, `id_prefix` AS `idPrefix`, `id_code` AS `idCode`, CONCAT(`id_prefix`, `id_code`) AS `id` FROM `user`
+		WHERE (CONCAT(`id_prefix`, `id_code`) LIKE #{keyword} OR `name` LIKE #{keyword}) AND `approved` = #{approved}
+	</select>
+	
+	<select id="selectByEmailAndPassword" parameterType="map" resultType="user">
+		SELECT *, `id_prefix` AS `idPrefix`, `id_code` AS `idCode`, CONCAT(`id_prefix`, `id_code`) AS `id` FROM `user`
+		WHERE `email` = #{email} AND `password` = #{password}
+	</select>
+	
+	<select id="selectCountByApproved" parameterType="boolean" resultType="long">
+		SELECT COUNT(`id_code`) FROM `user` WHERE `approved` = #{approved}
+	</select>
+	
+	<delete id="deleteById" parameterType="string">
+		DELETE FROM `user` WHERE CONCAT(`id_prefix`, `id_code`) = #{id}
+	</delete>
+	
+	
+	
+</mapper>

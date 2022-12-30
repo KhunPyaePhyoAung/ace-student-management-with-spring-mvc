@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="course">
+	<insert id="insert" parameterType="map" useGeneratedKeys="true" keyProperty="course.idCode" keyColumn="id_code">
+		INSERT INTO `course` (`id_prefix`, `name`, `short_name`) VALUES (#{courseIdPrefix}, #{course.name}, #{course.shortName})
+	</insert>
+	
+	<update id="updateById" parameterType="course">
+		UPDATE `course` SET `name` = #{name}, `short_name` = #{shortName} WHERE CONCAT(`id_prefix`, `id_code`) = #{id}
+	</update>
+	
+	<select id="selectById" parameterType="string" resultType="course">
+		SELECT *, `id_prefix` AS `idPrefix`, `id_code` AS `idCode`, `short_name` AS `shortName`, CONCAT(`id_prefix`, `id_code`) AS `id` FROM `course`
+		WHERE CONCAT(`id_prefix`, `id_code`) = #{id}
+	</select>
+	
+	<select id="selectAll" resultType="course">
+		SELECT *, `id_prefix` AS `idPrefix`, `id_code` AS `idCode`, `short_name` AS `shortName`, CONCAT(`id_prefix`, `id_code`) AS `id` FROM `course`
+	</select>
+	
+	<select id="selectCount" resultType="long">
+		SELECT COUNT(`id_code`) FROM `course`
+	</select>
+	
+	<select id="selectByStudentId" parameterType="string" resultType="course">
+		SELECT `c`.*,`c`.`id_prefix` AS `idPrefix`, `c`.`id_code` AS `idCode`, `c`.`short_name` AS `shortName`, CONCAT(`c`.`id_prefix`, `c`.`id_code`) AS `id`
+		FROM `student_course` `sc` INNER JOIN `course` `c` ON `sc`.`course_id` = `c`.`id_code`
+		INNER JOIN `student` `s` ON `sc`.`student_id` = `s`.`id_code`
+		WHERE CONCAT(`s`.`id_prefix`, `s`.`id_code`) = #{studentId}
+	</select>
+	
+	<select id="selectByKeywordLike" parameterType="string" resultType="course">
+		SELECT *, `id_prefix` AS `idPrefix`, `id_code` AS `idCode`, `short_name` AS `shortName`, CONCAT(`id_prefix`, `id_code`) AS `id` FROM `course`
+		WHERE CONCAT(`id_prefix`, `id_code`) LIKE #{keyword} OR `name` LIKE #{keyword} OR `short_name` LIKE #{keyword}
+	</select>
+	
+	<delete id="deleteById" parameterType="string">
+		DELETE FROM `course` WHERE CONCAT(`id_prefix`, `id_code`) = #{id}
+	</delete>
+</mapper>

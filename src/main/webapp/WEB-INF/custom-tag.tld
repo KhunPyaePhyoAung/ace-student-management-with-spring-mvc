@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<taglib>
+	<tlib-version>3.0</tlib-version>
+	<jsp-version>3.0</jsp-version>
+	
+	<tag>
+		<name>invalidFieldMessage</name>
+		<tag-class>me.khun.studentmanagement.view.InvalidFieldMessage</tag-class>
+		<body-content>empty</body-content>
+		<attribute>
+			<name>cssClass</name>
+			<type>java.lang.String</type>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
+			<name>field</name>
+			<type>java.lang.String</type>
+			<required>true</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
+			<name>exception</name>
+			<type>me.khun.studentmanagement.model.service.exception.InvalidFieldException</type>
+			<required>true</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+	</tag>
+</taglib>

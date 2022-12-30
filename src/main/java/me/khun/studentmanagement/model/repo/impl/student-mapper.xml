@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="student">
+	
+	<insert id="insert" parameterType="map" useGeneratedKeys="true" keyColumn="id_code" keyProperty="student.idCode">
+		INSERT INTO `student` (`id_prefix`, `name`, `date_of_birth`, `gender`, `phone`, `education`)
+		VALUES (#{studentIdPrefix}, #{student.name}, #{student.dateOfBirth}, #{student.gender}, #{student.phone}, #{student.education});
+	</insert>
+	
+	<insert id="insertCourse" parameterType="map">
+		INSERT IGNORE INTO `student_course` (`student_id`, `course_id`) VALUES
+		<foreach item="course" collection="courses" separator=",">
+			(#{studentIdCode}, #{course.idCode})
+		</foreach>
+	</insert>
+	
+	<update id="updateById" parameterType="student">
+		UPDATE `student` SET `name` = #{name}, `date_of_birth` = #{dateOfBirth}, `gender` = #{gender}, `phone` = #{phone}, `education` = #{education}
+		WHERE CONCAT(`id_prefix`, `id_code`) = #{id};
+	</update>
+	
+	<select id="selectById" parameterType="string" resultMap="studentWithCoursesResult">
+		SELECT * FROM `student_with_course_view`
+		WHERE `student_id` = #{id};
+	</select>
+	
+	<select id="selectAll" resultMap="studentWithCoursesResult">
+		SELECT * FROM `student_with_course_view`;
+	</select>
+	
+	<select id="selectCount" resultType="long">
+		SELECT COUNT(`id_code`) FROM `student`;
+	</select>
+	
+	<select id="selectByStudentKeywordAndCourseKeyword" parameterType="map" resultMap="studentWithCoursesResult">
+		SELECT * FROM `student_with_course_view`
+		WHERE `student_id` IN
+		(SELECT `student_id` FROM `student_with_course_view`
+			WHERE (`student_id` LIKE #{studentKeyword}
+			OR `student_name` LIKE #{studentKeyword})
+			AND (`course_id` LIKE #{courseKeyword}
+			OR `course_name` LIKE #{courseKeyword} OR `course_short_name` LIKE #{courseKeyword})
+			GROUP BY CONCAT(`student_id`)
+		)
+	</select>
+	
+	<delete id="deleteById" parameterType="string">
+		DELETE FROM `student` WHERE CONCAT(`id_prefix`, `id_code`) = #{id}
+	</delete>
+	
+	<delete id="deleteByCourseIdNotIn" parameterType="map">
+		DELETE FROM `student_course` WHERE `course_id` NOT IN
+		<foreach item="course" collection="courses" open="(" close=")" separator=",">
+			#{course.idCode}
+		</foreach>
+		AND `student_id` = #{studentIdCode};
+	</delete>
+	
+	<resultMap id="studentWithCoursesResult" type="student">
+		<id property="idCode" column="student_id_code"/>
+		<result property="idPrefix" column="student_id_prefix"/>
+		<result property="id" column="student_id"/>
+		<result property="name" column="student_name"/>
+		<result property="dateOfBirth" column="student_date_of_birth"/>
+		<result property="gender" column="student_gender"/>
+		<result property="phone" column="student_phone"/>
+		<result property="education" column="student_education"/>
+		
+		<collection property="courses" column="course_id_code" resultMap="courseResult">
+		
+		</collection>
+	</resultMap>
+	
+	<resultMap id="courseResult" type="course">
+		<id property="idCode" column="course_id_code"/>
+		<result property="idPrefix" column="course_id_prefix"/>
+		<result property="id" column="course_id"/>
+		<result property="name" column="course_name"/>
+		<result property="shortName" column="course_short_name"/>
+	</resultMap>
+</mapper>
