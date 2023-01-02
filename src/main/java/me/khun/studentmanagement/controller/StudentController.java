@@ -1,8 +1,15 @@
 package me.khun.studentmanagement.controller;
 
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.Formatter;
@@ -25,8 +32,13 @@ import me.khun.studentmanagement.model.entity.Student;
 import me.khun.studentmanagement.model.service.CourseService;
 import me.khun.studentmanagement.model.service.StudentService;
 import me.khun.studentmanagement.model.service.exception.ServiceException;
+import me.khun.studentmanagement.tool.JasperExporter;
 import me.khun.studentmanagement.view.Alert;
 import me.khun.studentmanagement.view.Alert.Type;
+import net.sf.jasperreports.engine.JRException;
+import net.sf.jasperreports.engine.JasperCompileManager;
+import net.sf.jasperreports.engine.JasperFillManager;
+import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 
 @Controller
 public class StudentController {
@@ -39,6 +51,9 @@ public class StudentController {
 	
 	@Autowired
 	private Formatter<Course> courseFormatter;
+	
+	@Autowired
+	private JasperExporter jasperExporter;
 	
 	@InitBinder
 	public void initBinder(WebDataBinder binder) {
@@ -105,6 +120,45 @@ public class StudentController {
 		}
 		
 		return "redirect:/user/student/search";
+	}
+	
+	@GetMapping("/admin/student/export")
+	public String exportStudents (
+			@RequestParam(required = false)
+			String studentKeyword,
+			@RequestParam(required = false)
+			String courseKeyword,
+			@RequestParam
+			String extension,
+			ModelMap model,
+			HttpServletRequest req,
+			HttpServletResponse resp) throws IOException {
+		var students = studentService.search(studentKeyword, courseKeyword);
+		if (students.isEmpty()) {
+			model.put("alert", new Alert("There is no student to export.", Type.ERROR));
+			return searchStudents(studentKeyword, courseKeyword, model);
+		}
+		students.add(0, new StudentDto());
+		var jasperPath = req.getServletContext().getRealPath("/resources/jasper/student.jrxml");
+		
+		var fileName = "students-%s".formatted(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss")));
+		
+		resp.setContentType(JasperExporter.getContentType(extension));
+		resp.setHeader("Content-Disposition", "attachment; filename=%s.%s".formatted(fileName, extension));
+		
+		var param = new HashMap<String, Object>();
+		param.put("title", "Students");
+		
+		try {
+			var jrDataSource = new JRBeanCollectionDataSource(students, false);
+			param.put("StudentListDataSource", jrDataSource);
+			var report = JasperCompileManager.compileReport(jasperPath);
+			var print = JasperFillManager.fillReport(report, param, jrDataSource);
+			jasperExporter.export(print, extension, resp.getOutputStream());
+		} catch (IOException | JRException e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 	
 	@GetMapping("/user/student/detail")

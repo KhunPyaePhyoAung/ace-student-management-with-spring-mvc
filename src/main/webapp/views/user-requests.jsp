@@ -1,6 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="secu" uri="http://www.springframework.org/security/tags" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -35,6 +36,34 @@
 					Back
 				</a>
 			</div>
+			
+			<secu:authorize access="hasAuthority('ADMIN')">
+				<div class="col-auto btn-group">
+					<button type="button" class="btn btn-secondary" >
+						<i class="fa-solid fa-print"></i>
+						Export As
+					</button>
+				    <button type="button" class="btn btn-secondary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false" >
+				    	<span class="visually-hidden">Toggle Dropdown</span>
+				    </button>
+					<ul class="dropdown-menu">
+						<c:url var="exportUserPdfUrl" value="/admin/user/export">
+							<c:param name="keyword" value="${param.keyword}"></c:param>
+							<c:param name="approved" value="false"></c:param>
+							<c:param name="extension" value="pdf"></c:param>
+						</c:url>
+						<li><a class="dropdown-item" href="${exportUserPdfUrl}">PDF</a></li>
+						
+						
+						<c:url var="exportUserExcelUrl" value="/admin/user/export">
+							<c:param name="keyword" value="${param.keyword}"></c:param>
+							<c:param name="approved" value="false"></c:param>
+							<c:param name="extension" value="xlsx"></c:param>
+						</c:url>
+						<li><a class="dropdown-item" href="${exportUserExcelUrl}">Excel</a></li>
+					</ul>
+				</div>
+			</secu:authorize>
 			
 		</form>
 		

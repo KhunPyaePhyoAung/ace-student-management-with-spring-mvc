@@ -18,6 +18,8 @@
 	
 	<mvc:resources location="/resources/" mapping="/resources/**"></mvc:resources>
 	
+	<bean id="jasperExporter" class="me.khun.studentmanagement.tool.JasperExporter"></bean>
+	
 	<bean id="messageSource" class="org.springframework.context.support.ReloadableResourceBundleMessageSource">
 		<property name="basename" value="classpath:ValidationMessages"></property>
 		<property name="defaultEncoding" value="UTF-8"></property>

@@ -40,7 +40,8 @@
 			WHERE (`student_id` LIKE #{studentKeyword}
 			OR `student_name` LIKE #{studentKeyword})
 			AND (`course_id` LIKE #{courseKeyword}
-			OR `course_name` LIKE #{courseKeyword} OR `course_short_name` LIKE #{courseKeyword})
+			OR `course_name` LIKE #{courseKeyword}
+			OR `course_short_name` LIKE #{courseKeyword})
 			GROUP BY CONCAT(`student_id`)
 		)
 	</select>

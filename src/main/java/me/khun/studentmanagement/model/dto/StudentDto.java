@@ -138,6 +138,19 @@ public class StudentDto {
 	public void setCourses(List<CourseDto> courses) {
 		this.courses = courses;
 	}
+	
+	public String getCourseShortNames() {
+		var stringBuffer = new StringBuffer();
+		var first = true;
+		for (var course : courses) {
+			if (!first) {
+				stringBuffer.append(", ");
+			}
+			stringBuffer.append(course.getShortName());
+			first = false;
+		}
+		return stringBuffer.toString();
+	}
 
 	@Override
 	public int hashCode() {

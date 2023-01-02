@@ -39,6 +39,34 @@
 				</div>
 			</secu:authorize>
 			
+			<secu:authorize access="hasAuthority('ADMIN')">
+				<div class="col-auto btn-group">
+					<button type="button" class="btn btn-secondary" >
+						<i class="fa-solid fa-print"></i>
+						Export As
+					</button>
+				    <button type="button" class="btn btn-secondary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false" >
+				    	<span class="visually-hidden">Toggle Dropdown</span>
+				    </button>
+					<ul class="dropdown-menu">
+						<c:url var="exportStudentPdfUrl" value="/admin/student/export">
+							<c:param name="studentKeyword" value="${param.studentKeyword}"></c:param>
+							<c:param name="courseKeyword" value="${param.courseKeyword}"></c:param>
+							<c:param name="extension" value="pdf"></c:param>
+						</c:url>
+						<li><a class="dropdown-item" href="${exportStudentPdfUrl}">PDF</a></li>
+						
+						
+						<c:url var="exportStudentExcelUrl" value="/admin/student/export">
+							<c:param name="studentKeyword" value="${param.studentKeyword}"></c:param>
+							<c:param name="courseKeyword" value="${param.courseKeyword}"></c:param>
+							<c:param name="extension" value="xlsx"></c:param>
+						</c:url>
+						<li><a class="dropdown-item" href="${exportStudentExcelUrl}">Excel</a></li>
+					</ul>
+				</div>
+			</secu:authorize>
+			
 		</form>
 		
 		<jsp:include page="/views/alert.jsp"></jsp:include>

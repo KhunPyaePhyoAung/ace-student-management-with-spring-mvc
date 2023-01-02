@@ -38,6 +38,32 @@
 				</div>
 			</secu:authorize>
 			
+			<secu:authorize access="hasAuthority('ADMIN')">
+				<div class="col-auto btn-group">
+					<button type="button" class="btn btn-secondary" >
+						<i class="fa-solid fa-print"></i>
+						Export As
+					</button>
+				    <button type="button" class="btn btn-secondary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false" >
+				    	<span class="visually-hidden">Toggle Dropdown</span>
+				    </button>
+					<ul class="dropdown-menu">
+						<c:url var="exportCoursePdfUrl" value="/admin/course/export">
+							<c:param name="keyword" value="${param.keyword}"></c:param>
+							<c:param name="extension" value="pdf"></c:param>
+						</c:url>
+						<li><a class="dropdown-item" href="${exportCoursePdfUrl}">PDF</a></li>
+						
+						
+						<c:url var="exportCourseExcelUrl" value="/admin/course/export">
+							<c:param name="keyword" value="${param.keyword}"></c:param>
+							<c:param name="extension" value="xlsx"></c:param>
+						</c:url>
+						<li><a class="dropdown-item" href="${exportCourseExcelUrl}">Excel</a></li>
+					</ul>
+				</div>
+			</secu:authorize>
+			
 		</form>
 		
 		<jsp:include page="/views/alert.jsp"></jsp:include>

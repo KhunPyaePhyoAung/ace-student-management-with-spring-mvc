@@ -1,9 +1,14 @@
 
 package me.khun.studentmanagement.controller;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.Objects;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,8 +34,13 @@ import me.khun.studentmanagement.model.service.UserService;
 import me.khun.studentmanagement.model.service.exception.InvalidFieldException;
 import me.khun.studentmanagement.model.service.exception.ServiceException;
 import me.khun.studentmanagement.security.LoginInfo;
+import me.khun.studentmanagement.tool.JasperExporter;
 import me.khun.studentmanagement.view.Alert;
 import me.khun.studentmanagement.view.Alert.Type;
+import net.sf.jasperreports.engine.JRException;
+import net.sf.jasperreports.engine.JasperCompileManager;
+import net.sf.jasperreports.engine.JasperFillManager;
+import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 
 @Controller
 public class UserController {
@@ -40,6 +50,9 @@ public class UserController {
 	
 	@Autowired
 	private AuthenticationManager authManager;
+	
+	@Autowired
+	private JasperExporter jasperExporter;
 
 	@GetMapping("/user/user/search")
 	public String searchUsers(
@@ -134,6 +147,49 @@ public class UserController {
 		}
 		
 		return "redirect:/user/user/search";
+	}
+	
+	@GetMapping("/admin/user/export")
+	public String exportUsers (
+			@RequestParam(required = false)
+			String keyword,
+			@RequestParam(required = true, defaultValue = "true")
+			Boolean approved,
+			@RequestParam
+			String extension,
+			ModelMap model,
+			HttpServletRequest req,
+			HttpServletResponse resp) {
+		var users = userService.search(keyword, approved);
+		
+		if (users.isEmpty()) {
+			model.put("alert", new Alert("There is no user to export.", Type.ERROR));
+			return approved ? searchUsers(keyword, model) : searchUserRequests(keyword, model);
+		}
+		
+		users.add(0, new UserDto());
+		
+		var jasperPath = req.getServletContext().getRealPath("/resources/jasper/user.jrxml");
+		
+		var fileName = "users-%s".formatted(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss")));
+		
+		resp.setContentType(JasperExporter.getContentType(extension));
+		resp.setHeader("Content-Disposition", "attachment; filename=%s.%s".formatted(fileName, extension));
+		
+		var param = new HashMap<String, Object>();
+		param.put("title", approved ? "Users" : "User Requests");
+		
+		try {
+			var jrDataSource = new JRBeanCollectionDataSource(users, false);
+			param.put("UserListDataSource", jrDataSource);
+			var report = JasperCompileManager.compileReport(jasperPath);
+			var print = JasperFillManager.fillReport(report, param, jrDataSource);
+			jasperExporter.export(print, extension, resp.getOutputStream());
+		} catch (IOException | JRException e) {
+			e.printStackTrace();
+		}
+		
+		return null;
 	}
 	
 	@GetMapping("/user/user/detail")
